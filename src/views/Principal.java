@@ -1,5 +1,12 @@
 package views;
 
+import gals.LexicalError;
+import gals.Lexico;
+import gals.SemanticError;
+import gals.Semantico;
+import gals.Sintatico;
+import gals.SyntaticError;
+import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,14 +15,16 @@ import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.text.BadLocationException;
 
 public class Principal extends javax.swing.JFrame {
-    
+
     String arquivo_salvar;
 
     public Principal() {
         initComponents();
-        ativarBotoesSalvar(false);  
+        ativarBotoesSalvar(false);
+        btAnalise.setEnabled(true);
         arquivo_salvar = "";
     }
 
@@ -37,7 +46,7 @@ public class Principal extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        retornoAnalise = new javax.swing.JTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
         editorCodigo = new javax.swing.JTextArea();
 
@@ -86,6 +95,11 @@ public class Principal extends javax.swing.JFrame {
         btAnalise.setToolTipText("Analisar");
         btAnalise.setMaximumSize(new java.awt.Dimension(50, 50));
         btAnalise.setPreferredSize(new java.awt.Dimension(50, 50));
+        btAnalise.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btAnaliseActionPerformed(evt);
+            }
+        });
         jPanel1.add(btAnalise);
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.PAGE_START);
@@ -95,18 +109,24 @@ public class Principal extends javax.swing.JFrame {
         jPanel4.setToolTipText("Código");
         jPanel4.setLayout(new java.awt.BorderLayout());
 
+        jPanel5.setPreferredSize(new java.awt.Dimension(183, 130));
         jPanel5.setLayout(new java.awt.BorderLayout());
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        retornoAnalise.setEditable(false);
+        retornoAnalise.setColumns(20);
+        retornoAnalise.setFont(new java.awt.Font("Times New Roman", 0, 13)); // NOI18N
+        retornoAnalise.setRows(5);
+        retornoAnalise.setMinimumSize(new java.awt.Dimension(4, 200));
+        jScrollPane1.setViewportView(retornoAnalise);
 
         jPanel5.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         jPanel4.add(jPanel5, java.awt.BorderLayout.PAGE_END);
 
         editorCodigo.setColumns(20);
+        editorCodigo.setFont(new java.awt.Font("Times New Roman", 0, 13)); // NOI18N
         editorCodigo.setRows(5);
+        editorCodigo.setText("/*\nCompilador v1 - Beta\n*/\nprogram {\n\tvoid main(){\n\n\t}\t\t\t\t\n}");
         editorCodigo.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 editorCodigoKeyReleased(evt);
@@ -125,59 +145,59 @@ public class Principal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btSalvarComoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSalvarComoActionPerformed
-        
-        JFileChooser seletor_arquivo = new JFileChooser();            
-        if(seletor_arquivo.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+
+        JFileChooser seletor_arquivo = new JFileChooser();
+        if (seletor_arquivo.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             arquivo_salvar = seletor_arquivo.getSelectedFile().getAbsolutePath();
         }
-            
-        if (!arquivo_salvar.equals("")){
+
+        if (!arquivo_salvar.equals("")) {
             try {
-                BufferedWriter arquivo = new BufferedWriter(new FileWriter(arquivo_salvar));                
+                BufferedWriter arquivo = new BufferedWriter(new FileWriter(arquivo_salvar));
                 arquivo.flush();
-                arquivo.write(editorCodigo.getText());                                
+                arquivo.write(editorCodigo.getText());
                 arquivo.close();
             } catch (IOException ex) {
                 Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
-            }            
+            }
         }
     }//GEN-LAST:event_btSalvarComoActionPerformed
 
     private void btAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAbrirActionPerformed
-        JFileChooser seletor_arquivo = new JFileChooser();        
-        int aux = seletor_arquivo.showOpenDialog(this);        
-        
-        if (aux == JFileChooser.APPROVE_OPTION) {                        
+        JFileChooser seletor_arquivo = new JFileChooser();
+        int aux = seletor_arquivo.showOpenDialog(this);
+
+        if (aux == JFileChooser.APPROVE_OPTION) {
             try {
-                arquivo_salvar = seletor_arquivo.getSelectedFile().getAbsolutePath();                
+                arquivo_salvar = seletor_arquivo.getSelectedFile().getAbsolutePath();
                 File arquivo = new File(arquivo_salvar);
-                editorCodigo.setText("");                                                               
+                editorCodigo.setText("");
                 editorCodigo.setText(new String(Files.readAllBytes(arquivo.toPath())));
                 btAnalise.setEnabled(true);
             } catch (Exception ex) {
                 Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
     }//GEN-LAST:event_btAbrirActionPerformed
 
     private void btSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSalvarActionPerformed
-        if (arquivo_salvar.equals("")){
-            JFileChooser seletor_arquivo = new JFileChooser();            
-            if(seletor_arquivo.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+        if (arquivo_salvar.equals("")) {
+            JFileChooser seletor_arquivo = new JFileChooser();
+            if (seletor_arquivo.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 arquivo_salvar = seletor_arquivo.getSelectedFile().getAbsolutePath();
             }
-            
-        } 
-        if (!arquivo_salvar.equals("")){
+
+        }
+        if (!arquivo_salvar.equals("")) {
             try {
-                BufferedWriter arquivo = new BufferedWriter(new FileWriter(arquivo_salvar));                
+                BufferedWriter arquivo = new BufferedWriter(new FileWriter(arquivo_salvar));
                 arquivo.flush();
-                arquivo.write(editorCodigo.getText());                                
+                arquivo.write(editorCodigo.getText());
                 arquivo.close();
             } catch (IOException ex) {
                 Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
-            }            
+            }
         }
     }//GEN-LAST:event_btSalvarActionPerformed
 
@@ -185,13 +205,43 @@ public class Principal extends javax.swing.JFrame {
         ativarBotoesSalvar(true);
     }//GEN-LAST:event_editorCodigoKeyReleased
 
-    
+    private void btAnaliseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAnaliseActionPerformed
+
+        try {
+            Lexico lex = new Lexico(editorCodigo.getText());
+            Sintatico sin = new Sintatico();
+            Semantico sem = new Semantico();
+            sin.parse(lex, sem);
+            retornoAnalise.setForeground(Color.BLUE);
+            retornoAnalise.setText("NENHUM PROBLEMA ENCONTRADO");
+        } catch (LexicalError | SyntaticError | SemanticError ex) {
+            try {
+                int pos;
+
+                if (ex.getPosition() < 20) {
+                    pos = ex.getPosition();
+                } else {
+                    pos = 20;
+                }
+
+                retornoAnalise.setForeground(Color.red);
+                retornoAnalise.setText(ex.getMessage());
+                retornoAnalise.append("\n-----------------------------------------------------------------------");
+                retornoAnalise.append("\n" + "Último trecho válido: \n"
+                        + editorCodigo.getText(ex.getPosition() - pos, pos));
+                retornoAnalise.append("\n-----------------------------------------------------------------------");
+            } catch (BadLocationException ex1) {
+                System.out.println(ex.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btAnaliseActionPerformed
+
     private void ativarBotoesSalvar(boolean ativar) {
         btSalvar.setEnabled(ativar);
         btSalvarComo.setEnabled(ativar);
         btAnalise.setEnabled(ativar);
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -239,6 +289,6 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextArea retornoAnalise;
     // End of variables declaration//GEN-END:variables
 }

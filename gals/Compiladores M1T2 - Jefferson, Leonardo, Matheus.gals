@@ -1,0 +1,247 @@
+#Options
+GenerateScanner = true
+GenerateParser = true
+Language = Java
+ScannerName = Lexico
+ParserName = Sintatico
+SemanticName = Semantico
+Package = gals
+ScannerCaseSensitive = true
+ScannerTable = Compact
+Input = Stream
+Parser = SLR
+#RegularDefinitions
+
+#Tokens
+:[\ \n\t\r\s]+
+
+
+nome_variavel: [$a-zA-Z_][a-zA-Z_0-9]*
+
+//palavras reservadas
+if = nome_variavel: "if"
+elseif = nome_variavel: "elseif"
+do = nome_variavel: "do"
+while = nome_variavel: "while"
+for = nome_variavel: "for"
+else = nome_variavel: "else"
+void = nome_variavel: "void"
+print = nome_variavel: "print"
+input = nome_variavel: "input"
+program = nome_variavel: "program"
+public = nome_variavel: "public"
+private = nome_variavel: "private"
+main = nome_variavel: "main"
+return = nome_variavel: "return"
+
+
+// tipos
+inteiro: [\-]?[0-9]+
+float: ([0-9]+)(\.?[0-9]+)?
+char: '[a-zA-Z]'
+string: \".*\"
+INT = nome_variavel: "int"
+FLOAT = nome_variavel: "float"
+BOOL = nome_variavel: "bool"
+DOUBLE = nome_variavel: "double"
+CHAR = nome_variavel: "char"
+STRING = nome_variavel: "string"
+
+
+//operadores aritmeticos
+op_soma: \+
+op_divisao: /
+op_menos: \-
+op_multip: \*
+
+
+//operadores logicos
+op_menor_igual: <=
+op_menor_que: <
+op_maior_igual: >=
+op_maior_que: >
+op_igual_a: ==
+op_diferente_de: !=
+op_AND: (&&|and)
+op_OR: (\|\||or)
+op_NOT: (!|not)
+op_MOD: (%|mod)
+op_atribuicao: =
+
+
+//bitwise
+op_bitwise_rightshift: >>
+op_bitwise_leftshift: <<
+op_bitwise_and: &
+op_bitwise_or: \|
+op_bitwise_xor: \^
+op_bitwise_not: ~
+
+//comentario (primeiro trabalho)
+COMMENNT: \\\s?[^\*].*
+MULTI_LINE_COMMENT: /\*([^\*]|[\*]+[^\*/])*\*+/
+
+//caracteres especiais
+virgula: ","
+ponto_e_virgula: ";"
+abre_colchetes: "[" 
+fecha_colchetes: "]"
+abre_parenteses: "(" 
+fecha_parenteses: ")"
+abre_chaves: "{" 
+fecha_chaves: "}" 
+#NonTerminals
+<program>
+
+<visibilidade>
+
+<metodos_procedimentos>
+<config_metodos_procedimentos>
+<lista_metodos_procedimentos>
+<metodos_procedimentos_tipo_retorno>
+
+<parametros>
+<parametro>
+<tipo_retorno>
+
+<declaracao_variavel>
+<tipo_variavel>
+<parametro_tipo_variavel>
+<variaveis>
+
+<tipos_declaracao>
+<tipos_declaracao_normal>
+<tipos_declaracao_array>
+
+<comandos>
+<comando>
+
+<definicao_variavel>
+<valor_definicao_variavel>
+
+<estruturas_repeticao>
+<while>
+<dowhile>
+
+<for>
+<config_for>
+<for_init>
+<condicao_for>
+<pos_operacao_for>
+<pos_operacao_for_lista>
+<pos_operacao_for_unico>
+
+<exps_for>
+
+<estruturas_condicionais>
+<if>
+<if_else>
+<else>
+
+<io>
+<input>
+<print>
+
+<exp>
+<exp1>
+<exp2>
+<exp3>
+<exp4>
+<exp5>
+<exp6>
+<exp7>
+<exp8>
+<exp9>
+<op_relacionais>
+<op_negacao>
+<op_bitwise>
+<op_aritmeticos>
+<a_cmd_f>
+<comentarios>
+<retorno_funcao>
+#Grammar
+<program> ::= <comentarios> <program> | program abre_chaves void main abre_parenteses fecha_parenteses <a_cmd_f> <metodos_procedimentos> fecha_chaves;
+
+//metodos e procedimentos
+<visibilidade> ::= public | private;
+
+<metodos_procedimentos> ::= <lista_metodos_procedimentos> | î;
+<lista_metodos_procedimentos> ::= <config_metodos_procedimentos> <lista_metodos_procedimentos>;
+<lista_metodos_procedimentos> ::= <config_metodos_procedimentos>;
+<metodos_procedimentos_tipo_retorno> ::= <tipo_retorno> | void;
+<config_metodos_procedimentos> ::= <visibilidade> <metodos_procedimentos_tipo_retorno> nome_variavel abre_parenteses <parametros> fecha_parenteses abre_chaves <comandos> fecha_chaves;
+
+<parametro> ::= <tipo_retorno> nome_variavel | î;
+<parametros> ::= <parametro> virgula <parametros>;
+<parametros> ::= <parametro>;
+
+<tipo_retorno> ::= <tipo_variavel> | <parametro_tipo_variavel>;
+<parametro_tipo_variavel> ::= <tipo_variavel> abre_colchetes fecha_colchetes;
+
+
+
+//declaração variáveis
+<declaracao_variavel> ::= <tipos_declaracao> <variaveis> ponto_e_virgula;
+<variaveis> ::= nome_variavel virgula <variaveis>;
+<variaveis> ::= nome_variavel;
+<tipo_variavel> ::= INT | FLOAT | BOOL | DOUBLE | CHAR | STRING;
+<tipos_declaracao> ::= <tipos_declaracao_normal> | <tipos_declaracao_array>;
+<tipos_declaracao_normal> ::= <tipo_variavel>; 
+<tipos_declaracao_array> ::= <tipo_variavel> abre_colchetes fecha_colchetes;
+
+//corpo programa/metodos
+<a_cmd_f> ::= abre_chaves <comandos> fecha_chaves | abre_chaves fecha_chaves;
+<comandos> ::= <comandos> <comando> | <comando>;
+<comando> ::= <declaracao_variavel> | <definicao_variavel> | <estruturas_repeticao> | <estruturas_condicionais> | <io> | <retorno_funcao> | <comentarios>;
+<retorno_funcao> ::= return <exp> ponto_e_virgula;
+
+//atribuição de valor a variável
+<definicao_variavel> ::= nome_variavel op_atribuicao <valor_definicao_variavel> ponto_e_virgula;
+<valor_definicao_variavel> ::= <exp>;
+
+
+//estruturas de repetição
+<estruturas_repeticao> ::= <while> | <dowhile> | <for>;
+<while> ::= while abre_parenteses <exp> fecha_parenteses abre_chaves <comandos> fecha_chaves;
+<dowhile> ::= do abre_chaves <comandos> fecha_chaves while abre_parenteses <exp> fecha_parenteses;
+
+<for> ::= for abre_parenteses <config_for> fecha_parenteses abre_chaves <comandos> fecha_chaves;
+<config_for> ::= <for_init> ponto_e_virgula <condicao_for> ponto_e_virgula <pos_operacao_for>;
+<for_init> ::= INT nome_variavel op_atribuicao inteiro;
+<condicao_for> ::= <exps_for>;
+<exps_for> ::= <exp> virgula <exps_for>;
+<exps_for> ::= <exp>;
+<pos_operacao_for> ::= <pos_operacao_for_lista>;
+<pos_operacao_for_unico> ::= nome_variavel op_soma op_atribuicao inteiro | nome_variavel op_soma op_soma;
+<pos_operacao_for_lista> ::= <pos_operacao_for_unico> virgula <pos_operacao_for_lista>;
+<pos_operacao_for_lista> ::= <pos_operacao_for_unico>;
+
+
+//estruturas condicionais
+<estruturas_condicionais> ::= <if> | <if_else>;
+<if> ::= if abre_parenteses <exp> fecha_parenteses abre_chaves <comandos> fecha_chaves;
+<if_else> ::= <if> <else>;
+<else> ::= else abre_chaves <comandos> fecha_chaves;
+
+//entrada e saida
+<io> ::= <input> | <print>;
+<print> ::= print abre_parenteses <exp> fecha_parenteses ponto_e_virgula;
+<input> ::= nome_variavel op_atribuicao input abre_parenteses fecha_parenteses ponto_e_virgula;
+
+//expressões
+<exp>  ::= <exp> op_OR <exp1> | <exp1>;
+<exp1> ::= <exp1> op_AND <exp2> | <exp2>;
+<exp2> ::= <exp2> op_bitwise_or <exp3> | <exp3>;
+<exp3> ::= <exp3> op_bitwise_xor <exp4> | <exp4>;
+<exp4> ::= <exp4> op_bitwise_and <exp5> | <exp5>;
+<exp5> ::= <exp5> <op_relacionais> <exp6> | <exp6>;
+<exp6> ::= <exp6> <op_bitwise> <exp7> | <exp7>;
+<exp7> ::= <exp7> <op_aritmeticos> <exp8> | <exp8>;
+<exp8> ::= <op_negacao> <exp9> | <exp9>;
+<exp9> ::= inteiro | float | nome_variavel | abre_parenteses <exp> fecha_parenteses;
+
+<op_relacionais> ::= op_maior_que | op_menor_que | op_maior_igual | op_menor_igual | op_atribuicao | op_diferente_de; 
+<op_negacao> ::= op_menos | op_bitwise_not | op_NOT;
+<op_bitwise> ::= op_bitwise_leftshift | op_bitwise_rightshift;
+<op_aritmeticos> ::= op_soma | op_menos | op_multip | op_divisao | op_MOD;
+<comentarios> ::= COMMENNT | MULTI_LINE_COMMENT;
